@@ -1,4 +1,5 @@
 from flask import Flask, request, jsonify
+from sqlalchemy.orm import session
 from database import db
 from models.user import User
 from models.meal import Meal
@@ -15,7 +16,7 @@ login_manager.init_app(app)
 
 @login_manager.user_loader
 def load_user(user_id):
-     return User.query.get(user_id)
+     return db.session.query(User).get(user_id)
 
 @app.route("/login", methods=['POST'])
 def login():
@@ -53,6 +54,29 @@ def create_user():
         return jsonify(message)
     
     return jsonify({"message": "Credenciais inválidas"}), 400
+
+@app.route('/user/new-meal', methods=['POST'])
+@login_required
+def create_meal():
+    data = request.json
+    user_id = current_user.id
+    name = data.get('name')
+    description = data.get('description')
+    date = data.get('date')
+    time = data.get('time')
+    in_diet = data.get("in_diet")
+
+    if name:
+        meals = Meal(name=name, description=description, date=date, time=time, in_diet=in_diet, user_id=user_id)
+        db.session.add(meals)
+        db.session.commit()
+        return jsonify({"message": "Refeição adicionada"})
+    
+    return jsonify({"message": "Dados inválidos"}), 400
+
+@app.route("/test", methods=["GET"])
+def test():
+    return "Testando a Rota"
 
 if __name__ == '__main__':
     app.run(debug=True)
