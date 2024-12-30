@@ -10,13 +10,14 @@ app = Flask(__name__)
 app.config['SECRET_KEY'] = 'your_secret_key'
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///database.db'
 
+
 login_manager = LoginManager()
 db.init_app(app)
 login_manager.init_app(app)
 
 @login_manager.user_loader
 def load_user(user_id):
-     return db.session.query(User).get(user_id)
+     return db.session.get(User, user_id)
 
 @app.route("/login", methods=['POST'])
 def login():
@@ -73,6 +74,27 @@ def create_meal():
         return jsonify({"message": "Refeição adicionada"})
     
     return jsonify({"message": "Dados inválidos"}), 400
+
+@app.route("/user/meals", methods=['GET'])
+@login_required
+def meals_list():
+    meals = Meal.query.filter_by(user_id=current_user.id).all()
+
+    if meals:
+        result = [
+            {"id": meal.id, 
+             "name": meal.name, 
+             "description": meal.description, 
+             "date": meal.date, 
+             "time": meal.time, 
+             "in_diet": meal.in_diet
+             }
+
+            for meal in meals
+        ]
+        return jsonify(result), 200
+    
+    return jsonify({"message": "Nenhuma refeição encontrada."}), 404
 
 @app.route("/test", methods=["GET"])
 def test():
