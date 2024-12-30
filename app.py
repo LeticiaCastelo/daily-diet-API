@@ -71,9 +71,9 @@ def create_meal():
         meals = Meal(name=name, description=description, date=date, time=time, in_diet=in_diet, user_id=user_id)
         db.session.add(meals)
         db.session.commit()
-        return jsonify({"message": "Refeição adicionada"})
+        return jsonify({"message": "Refeição adicionada"}), 201
     
-    return jsonify({"message": "Dados inválidos"}), 400
+    return jsonify({"message": "Erro ao adicionar a refeição"}), 400
 
 @app.route("/user/meals", methods=['GET'])
 @login_required
@@ -95,6 +95,24 @@ def meals_list():
         return jsonify(result), 200
     
     return jsonify({"message": "Nenhuma refeição encontrada."}), 404
+
+@app.route("/user/meal/<int:meal_id>", methods=['GET'])
+@login_required
+def meal(meal_id):
+    print(f"Usuário autenticado: {current_user.id}")
+    meal = Meal.query.filter_by(id=meal_id, user_id=current_user.id).first()
+
+    if meal:
+        result_meal = {
+            "id": meal.id,
+            "name": meal.name,
+            "description": meal.description,
+            "date": meal.date,
+            "time": meal.time,
+            "in_diet": meal.in_diet                   
+            }
+        return jsonify(result_meal)
+    return jsonify({"message": "Refeição não encontrada"}), 404
 
 @app.route("/test", methods=["GET"])
 def test():
