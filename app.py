@@ -132,16 +132,20 @@ def edit_meal(meal_id):
         print(meal)
         return jsonify({"message": "Refeição atualizada com sucesso"})
     else:
-        return jsonify({"message": "Refeição não encontrada"}), 400
+        return jsonify({"message": "Refeição não encontrada"}), 404
 
+@app.route("/user/meal/<int:id_meal>", methods=["DELETE"])
+@login_required
+def delete_meal(id_meal):
+    meal = Meal.query.filter_by(id=id_meal, user_id=current_user.id).first()
 
-
+    if meal:
+        db.session.delete(meal)
+        db.session.commit()
+        return jsonify({"message": f"A refeição {meal.id} foi deletada com sucesso"})
     
-
-
-@app.route("/test", methods=["GET"])
-def test():
-    return "Testando a Rota"
+    else:
+        return jsonify({"message": "Refeição não encontrada"}), 404
 
 if __name__ == '__main__':
     app.run(debug=True)
