@@ -114,6 +114,31 @@ def meal(meal_id):
         return jsonify(result_meal)
     return jsonify({"message": "Refeição não encontrada"}), 404
 
+@app.route("/user/edit-meal/<int:meal_id>", methods=['PUT'])
+@login_required
+def edit_meal(meal_id):
+    meal = Meal.query.filter_by(id=meal_id, user_id=current_user.id).first()
+
+    if meal:
+    
+        data = request.get_json()
+        meal.name = data['name']
+        meal.description = data['description']
+        meal.date = data['date']
+        meal.time = data['time']
+        meal.in_diet = data['in_diet']
+
+        db.session.commit()
+        print(meal)
+        return jsonify({"message": "Refeição atualizada com sucesso"})
+    else:
+        return jsonify({"message": "Refeição não encontrada"}), 400
+
+
+
+    
+
+
 @app.route("/test", methods=["GET"])
 def test():
     return "Testando a Rota"
